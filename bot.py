@@ -1,6 +1,11 @@
 import telebot
 from decouple import config
 import requests
+from telebot import types
+import os
+
+path = os.getcwd()
+
 
 TELEGRAM_API_KEY = config('TELEGRAM_API_KEY')
 
@@ -12,12 +17,30 @@ bot = telebot.TeleBot(TELEGRAM_API_KEY)
 
 @bot.message_handler(content_types=['text']) 
 def get_text_messages(message): 
-    if message.text == "Привет": 
-        bot.send_message(message.from_user.id, "Привет, сейчас я расскажу тебе гороскоп на сегодня.") 
-    elif message.text == "/help": 
-        bot.send_message(message.from_user.id, "Напиши Привет") 
-    else: 
-        bot.send_message(message.from_user.id, "Я тебя не понимаю. Напиши /help.")
+
+    markup = types.ReplyKeyboardMarkup(row_width=2)
+    itembtn1 = types.KeyboardButton('Создать папку')
+    markup.add(itembtn1)
+    msg = bot.reply_to(message, 'Выберите действие', reply_markup=markup)
+    bot.register_next_step_handler(msg, process_step)
+
+
+
+def process_step (message):
+    chat_id = message.chat.id
+    if message.text=='Создать папку':
+         msg = bot.reply_to(message, 'Узажите имя папки')
+         bot.register_next_step_handler(msg, create_folder)
+    else:
+        print (2)
+
+
+def create_folder (message):
+    import os
+    directory = path + '/img/' + message.text
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+    
 
 
 @bot.message_handler(content_types=['photo'])
